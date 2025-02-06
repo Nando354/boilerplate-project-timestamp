@@ -20,8 +20,37 @@ app.get("/", function (req, res) {
 
 
 // your first API endpoint... 
-app.get("/api/hello", function (req, res) {
-  res.json({greeting: 'hello API'});
+app.get("/api/:date?", function (req, res) {
+  const dateString = req.params.date;
+
+  let date;
+
+  if (!dateString) {
+    date = new Date();
+  } else {
+    if (/^\d+$/.test(dateString)) {
+      let timestamp = parseInt(dateString);
+
+      // Check for potential overflow (important!)
+      if (timestamp > 2147483647) { // Max value for 32 bit signed integer
+        timestamp = Math.floor(timestamp / 1000); // Divide by 1000 to convert seconds to milliseconds
+      }
+
+      date = new Date(0);
+      date.setUTCMilliseconds(timestamp * 1000);
+    } else {
+      date = new Date(dateString);
+    }
+  }
+
+  if (isNaN(date)) {
+    return res.json({ error: "Invalid Date" });
+  }
+
+  const unixTimestamp = date.getTime();
+  const utcString = date.toUTCString();
+
+  res.json({ unix: unixTimestamp, utc: utcString });
 });
 
 
